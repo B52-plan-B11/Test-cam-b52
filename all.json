@@ -1,0 +1,28 @@
+[
+  {
+    "username": "john_doe",
+    "full_name": "John Doe",
+    "bio": "Just a guy sharing cool videos.",
+    "profile_picture": "https://path_to_image.jpg",
+    "followers": 12000,
+    "following": 300,
+    "likes": 45000,
+    "location": "New York, USA",
+    "account_creation_date": "2020-01-15",
+    "last_active": "2024-09-30",
+    "verified": false
+  },
+  {
+    "username": "jane_doe",
+    "full_name": "Jane Doe",
+    "bio": "Making fun and creative content.",
+    "profile_picture": "https://path_to_image.jpg",
+    "followers": 10000,
+    "following": 500,
+    "likes": 40000,
+    "location": "Los Angeles, USA",
+    "account_creation_date": "2019-02-10",
+    "last_active": "2024-09-29",
+    "verified": true
+  }
+]

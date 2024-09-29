@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Telegram Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <form id="telegramForm">
+        <h2>Send Message to Telegram</h2>
+        <input type="text" id="telegramId" placeholder="Telegram ID" required>
+        <input type="url" id="websiteUrl" placeholder="Website URL" required>
+        <button type="submit">Send Message</button>
+    </form>
+
+    <script>
+        const form = document.getElementById('telegramForm');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const telegramId = document.getElementById('telegramId').value;
+            const websiteUrl = document.getElementById('websiteUrl').value;
+            const message = `Check out this website: ${websiteUrl}`;
+
+            const botToken = '6552995612:AAGpPJPmKHJBKeSbzNJPxjxM3-8HDXa_rec'; // Replace with your bot token
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+            const data = {
+                chat_id: telegramId,
+                text: message,
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+                if (result.ok) {
+                    alert('Message sent successfully!');
+                } else {
+                    alert('Error sending message: ' + result.description);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to send message.');
+            }
+        });
+    </script>
+
+</body>
+</html>
